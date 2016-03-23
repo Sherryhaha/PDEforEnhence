@@ -10,26 +10,11 @@
 using namespace cv;
 class PMenhence {
 
-//public:
-//    PMenhence();
 
 
 public:
 
-    unsigned int X_image, Y_image;
-//    BYTE *our_image_buffer;
-//    BYTE *temp_imageBuffer;
-//
-//    CTreeCtrl m_tree;
-//    HTREEITEM m_hRoot;
-//    CEdit m_wndEdit;
-//    CCoolBar m_wndMyBar1;
-//    CCoolBar m_wndMyBar2;
-
-//    virtual ~CMainFrame();
-
-    int m_nDWTCurDepth;
-    int m_nSupp;
+     int X_image, Y_image;
 
 
     void gradn(Mat & A, Mat&B);

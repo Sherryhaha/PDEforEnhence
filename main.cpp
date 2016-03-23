@@ -1,18 +1,18 @@
 #include <iostream>
 #include "PMenhence.h"
 #include<math.h>
-#include <cv.h>
-#include <opencv2/highgui.hpp>
 
 using namespace std;
 using namespace cv;
+
+typedef float ty;
 
 void PMenhence::gradn(Mat &A, Mat &B)    //求N方向梯度
 {
     int h, w;
     for (h = 1; h < Y_image; h++)
         for (w = 0; w < X_image; w++) {
-            B.at<uchar>(h, w) = A.at<uchar>(h - 1, w) - A.at<uchar>(h, w);
+            B.at<ty>(h, w) = A.at<ty>(h - 1, w) - A.at<ty>(h, w);
 //            B[h*X_image+w] = A[(h-1)*X_image+w]-A[h*X_image+w];
         }
 }
@@ -22,7 +22,7 @@ void PMenhence::grads(Mat &A, Mat &B)    //求S方向梯度
     int h, w;
     for (h = 0; h < Y_image - 1; h++)
         for (w = 0; w < X_image; w++) {
-            B.at<uchar>(h, w) = A.at<uchar>(h + 1, w) - A.at<uchar>(h, w);
+            B.at<ty>(h, w) = A.at<ty>(h + 1, w) - A.at<ty>(h, w);
 //            B[h*X_image+w] = A[(h+1)*X_image+w]-A[h*X_image+w];
         }
 }
@@ -32,7 +32,7 @@ void PMenhence::grade(Mat &A, Mat &B)    //求E方向梯度
     int h, w;
     for (h = 0; h < Y_image; h++)
         for (w = 0; w < X_image - 1; w++) {
-            B.at<uchar>(h, w) = A.at<uchar>(h, w + 1) - A.at<uchar>(h, w);
+            B.at<ty>(h, w) = A.at<ty>(h, w + 1) - A.at<ty>(h, w);
 //            B[h*X_image+w] = A[h*X_image+w+1]-A[h*X_image+w];
         }
 }
@@ -42,7 +42,7 @@ void PMenhence::gradw(Mat &A, Mat &B)    //求W方向梯度
     int h, w;
     for (h = 0; h < Y_image; h++)
         for (w = 1; w < X_image; w++) {
-            B.at<uchar>(h, w) = A.at<uchar>(h, w - 1) - A.at<uchar>(h, w);
+            B.at<ty>(h, w) = A.at<ty>(h, w - 1) - A.at<ty>(h, w);
 //            B[h*X_image+w] = A[h*X_image+w-1]-A[h*X_image+w];
         }
 }
@@ -53,7 +53,7 @@ void PMenhence::pm1_diffusion(Mat &A, Mat &B,
     int h, w;
     for (h = 0; h < Y_image; h++)
         for (w = 0; w < X_image; w++) {
-            B.at<uchar>(h, w) = exp(-(abs(A.at<uchar>(h, w)) / k) * (abs(A.at<uchar>(h, w)) / k));
+            B.at<ty>(h, w) = exp(-(abs(A.at<ty>(h, w)) / k) * (abs(A.at<ty>(h, w)) / k));
 //            B[h*X_image+w]=exp(-(abs(A[h*X_image+w])/k)*(abs(A[h*X_image+w])/k));
         }
 }
@@ -62,9 +62,11 @@ void PMenhence::pm2_diffusion(Mat &A, Mat &B,
                               double k)    //按照第二个公式求扩散系数'pm2': perona-malik, c=1/{1+(|grad(J)|/K)^2} [PM90]
 {
     int h, w;
+    int a = X_image;
+    int b = Y_image;
     for (h = 0; h < Y_image; h++)
         for (w = 0; w < X_image; w++) {
-            B.at<uchar>(h, w) = 1 / ((abs(A.at<uchar>(h, w)) / k) * (abs(A.at<uchar>(h, w)) / k) + 1);
+            B.at<ty>(h, w) = 1 / ((abs(A.at<ty>(h, w)) / k) * (abs(A.at<ty>(h, w)) / k) + 1);
 //            B[h*X_image+w]=1/((abs(A[h*X_image+w])/k)*(abs(A[h*X_image+w])/k)+1);
         }
 }
@@ -124,16 +126,33 @@ void PMenhence::DiffusionPic(Mat &src, int method, int feed, int loop, double K,
     CW.create(src.size(), src.type());
     CE.create(src.size(), src.type());
 
+//    IMG.ones(src.size(),src.type());
+//    pIN.ones(src.size(), src.type());
+//    IS.ones(src.size(), src.type());
+//    IW.ones(src.size(), src.type());
+//    IE.ones(src.size(), src.type());
+//    CN.ones(src.size(), src.type());
+//    CS.ones(src.size(), src.type());
+//    CW.ones(src.size(), src.type());
+//    CE.ones(src.size(), src.type());
+
     for (h = 0; h < Y_image; h++)
         for (w = 0; w < X_image; w++)
-            IMG.at<uchar>(h, w) = src.at<uchar>(h * 4, w * 4);
+            IMG.at<ty>(h, w) = src.at<ty>(h * 4, w * 4);
 //            IMG[h*X_image+w]= img[h*X_image*4+w*4];
 
+//    cout<< src.at<ty>(1000,1000)<<"  ";
 
-    gradn(IMG, pIN);    //求N方向的梯度
+
+
+    gradn(IMG, pIN);       //求N方向的梯度
     grads(IMG, IS);        //求S方向的梯度
     grade(IMG, IE);        //求E方向的梯度
     gradw(IMG, IW);        //求W方向的梯度
+
+//    namedWindow("testforimg");
+//    imshow("testforimg",src);
+
 
     switch (method) {
         case 0:        //按照第一个公式求各个方向的扩散系数'pm1': perona-malik, c=exp{-(|grad(J)|/K)^2} [PM90]
@@ -156,10 +175,10 @@ void PMenhence::DiffusionPic(Mat &src, int method, int feed, int loop, double K,
     {
         for (h = 1; h < Y_image - 1; h++)        //计算各个方向梯度
             for (w = 1; w < X_image - 1; w++) {
-                in = IMG.at<uchar>(h - 1, w) - IMG.at<uchar>(h, w);
-                is = IMG.at<uchar>(h + 1, w) - IMG.at<uchar>(h, w);
-                iw = IMG.at<uchar>(h, w - 1) - IMG.at<uchar>(h, w);
-                ie = IMG.at<uchar>(h, w + 1) - IMG.at<uchar>(h, w);
+                in = IMG.at<ty>(h - 1, w) - IMG.at<ty>(h, w);
+                is = IMG.at<ty>(h + 1, w) - IMG.at<ty>(h, w);
+                iw = IMG.at<ty>(h, w - 1) - IMG.at<ty>(h, w);
+                ie = IMG.at<ty>(h, w + 1) - IMG.at<ty>(h, w);
 //                in = IMG[(h-1)*X_image+w]-IMG[h*X_image+w];
 //                is = IMG[(h+1)*X_image+w]-IMG[h*X_image+w];
 //                iw = IMG[h*X_image+w-1]-IMG[h*X_image+w];
@@ -168,8 +187,8 @@ void PMenhence::DiffusionPic(Mat &src, int method, int feed, int loop, double K,
                 switch (feed)        //选择扩散系数是否接受反馈的数据更新
                 {
                     case 0:        //不接受反馈数据更新
-                        sum = in * CN.at<uchar>(h, w) + is * CS.at<uchar>(h, w) + iw * CW.at<uchar>(h, w) +
-                              ie * CE.at<uchar>(h, w);
+                        sum = in * CN.at<ty>(h, w) + is * CS.at<ty>(h, w) + iw * CW.at<ty>(h, w) +
+                              ie * CE.at<ty>(h, w);
 //                        sum = in*CN[h*X_image+w] + is*CS[h*X_image+w] + iw*CW[h*X_image+w] + ie*CE[h*X_image+w];
                         break;
                     case 1:        //接受反馈数据更新
@@ -185,20 +204,25 @@ void PMenhence::DiffusionPic(Mat &src, int method, int feed, int loop, double K,
                 }
 
                 sum = sum * dt;        //乘时间增量因子
-                IMG.at<uchar>(h, w) = IMG.at<uchar>(h, w) + sum;//更新图像数据
+                IMG.at<ty>(h, w) = IMG.at<ty>(h, w) + sum;//更新图像数据
 //                IMG[h*X_image+w]=IMG[h*X_image+w]+sum;
             }
     }
 
     for (h = 0; h < Y_image; h++)
         for (w = 0; w < X_image; w++) {
-            src.at<uchar>(h * 4, w * 4) = IMG.at<uchar>(h, w);
-            src.at<uchar>(h * 4, w * 4 + 1) = IMG.at<uchar>(h, w);
-            src.at<uchar>(h * 4, w * 4 + 2) = IMG.at<uchar>(h, w);
+            src.at<ty>(h * 4, w * 4) = IMG.at<ty>(h, w);
+            src.at<ty>(h * 4, w * 4 + 1) = IMG.at<ty>(h, w);
+            src.at<ty>(h * 4, w * 4 + 2) = IMG.at<ty>(h, w);
 //            img[h*X_image*4+w*4]=IMG[h*X_image+w];
 //            img[h*X_image*4+w*4+1]=IMG[h*X_image+w];
 //            img[h*X_image*4+w*4+2]=IMG[h*X_image+w];
         }
+
+
+    namedWindow("test");
+    imshow("test", src);
+    waitKey(0);
 //
 //    delete [] IMG;
 //    delete [] pIN;
@@ -209,16 +233,17 @@ void PMenhence::DiffusionPic(Mat &src, int method, int feed, int loop, double K,
 //    delete [] CS;
 //    delete [] CW;
 //    delete [] CE;
+    return;
 }
 
 void printMat(Mat &src) {
-    unsigned char tmp;
+    ty tmp;
     int Height = src.cols;
     int Width = src.rows;
     int i, j;
     for (j = 0; j < Height; j++) {
         for (i = 0; i < Width; i++) {
-            tmp = src.at<uchar>(j, i);
+            tmp = src.at<float>(j, i);
             cout << tmp << " ";
         }
         cout << endl;
@@ -231,11 +256,11 @@ int main() {
     Mat src, src1;
     src = imread(filename, CV_LOAD_IMAGE_GRAYSCALE);
 
-//    src.convertTo(src1, CV_32F, 1 / 255.0);
+    src.convertTo(src1, CV_32F, 1.0 / 255.0,0);
 //    printMat(src);
     PMenhence p;
-    p.X_image = src.rows;
-    p.Y_image = src.cols;
+    p.X_image = src.cols;
+    p.Y_image = src.rows;
 
 // 			method:使用的扩散系数算法	0='pm1': perona-malik, c=exp{-(|grad(J)|/K)^2}
 //										1='pm2': perona-malik, c=1/{1+(|grad(J)|/K)^2}
@@ -245,18 +270,19 @@ int main() {
 
     int feed = 0;
 //    loop:叠代循环的次数
-    int loop = 3;
+    int loop = 250;
 //    K:扩散系数的压迫因子
     double k = 1;
 //    dt:时间增量参数
-    double dt = 1;
-
-    p.DiffusionPic(src, method, feed, loop, k, dt);
-
-
-    namedWindow("test");
-    imshow("test", src);
-    waitKey(0);
+    double dt = 0.25;
+//
+//    int method = 1;
+//    int feed = 0;
+//    int loop = 250;
+//    double K = 1;
+//    double dt = 0.25;
+    p.DiffusionPic(src1, method, feed, loop, k, dt);
+    return 0;
 
 
 
