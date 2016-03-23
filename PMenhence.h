@@ -17,17 +17,24 @@ public:
      int X_image, Y_image;
 
 
-    void gradn(Mat & A, Mat&B);
+//    void gradn(Mat & A, Mat&B);
+//
+//    void grads(Mat&A, Mat&B);
+//
+//    void grade(Mat&A, Mat&B);
+//
+//    void gradw(Mat&A, Mat&B);
+//
+//    void pm1_diffusion(Mat&A, Mat&B, double k);
+//
+//    void pm2_diffusion(Mat&A, Mat&B, double k);
 
-    void grads(Mat&A, Mat&B);
-
-    void grade(Mat&A, Mat&B);
-
-    void gradw(Mat&A, Mat&B);
-
-    void pm1_diffusion(Mat&A, Mat&B, double k);
-
-    void pm2_diffusion(Mat&A, Mat&B, double k);
+    void gradn(double *A, double *B);
+    void grads(double *A, double *B);
+    void grade(double *A, double *B);
+    void gradw(double *A, double *B);
+    void pm1_diffusion(double *A, double *B, double k);
+    void pm2_diffusion(double *A, double *B, double k);
 
     void DiffusionPic(Mat&img, int method, int feed, int loop, double K, double dt);
 
